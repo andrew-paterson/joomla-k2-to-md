@@ -1,0 +1,1 @@
+node index.js './input/russel.json' toml
