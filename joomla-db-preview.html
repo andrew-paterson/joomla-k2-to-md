@@ -1,0 +1,155 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    var dbPrefix = 'xp0hq_';
+    var menuName = "mainmenu"
+    fetch('./vitalmaths.json')
+    .then(
+      function(response) {
+        if (response.status !== 200) {
+          console.log('Looks like there was a problem. Status Code: ' +
+            response.status);
+          return;
+        }
+
+        // Examine the text in the response
+        response.json().then(function(data) {
+          console.log(data);
+          var menus = data.filter(item => {
+            return item.name === `${dbPrefix}menu`
+          });
+          var k2Items = data.filter(item => {
+            return item.name === `${dbPrefix}k2_items`
+          })[0].data;
+
+          var k2ExtraFields = data.filter(item => {
+            return item.name === `${dbPrefix}k2_extra_fields`
+          })[0].data;
+
+
+          var k2Categories = data.filter(item => {
+            return item.name === `${dbPrefix}k2_categories`
+          })[0].data;
+        
+          var menuItems = menus[0].data.filter(item => {
+            return item.menutype === menuName
+          });
+
+          var k2AdditionalCategories = data.filter(item => {
+            return item.name === `${dbPrefix}k2_additional_categories`
+          })[0].data;
+
+          var contentItems = [];
+          k2Items.forEach(item => {
+            var hugoContentItem = {
+              frontMatter: {
+                tags: [],
+                categories: []
+              },
+              content: {}
+            };
+            // Data from the item itself
+            hugoContentItem.frontMatter.title = item.title;
+            hugoContentItem.frontMatter.weight = item.ordering;
+            hugoContentItem.frontMatter.publish_date = item.publish_up;
+            hugoContentItem.frontMatter.date = item.created;
+
+            // Get the main item category
+            var itemCategoryObject = k2Categories.find(cat => {
+              return cat.id === item.catid;
+            });
+            hugoContentItem.frontMatter.categories.push(itemCategoryObject.alias);
+
+            var itemAdditionalCategories = k2AdditionalCategories.filter(k2AdditionalCategory => {
+              return k2AdditionalCategory.itemID === item.id;
+            });
+
+            itemAdditionalCategories.forEach(item => {
+              hugoContentItem.frontMatter.categories.push(getFieldPropById(k2Categories, item.catid, 'alias'));
+            });
+           
+            // Data from the related extra fields
+            var itemExtraFieldsContent = JSON.parse(item.extra_fields);
+            itemExtraFieldsContent = itemExtraFieldsContent || [];
+
+            itemExtraFieldsContent.forEach(efc => {
+              var extraFieldObject = k2ExtraFields.find(ef => {
+                return ef.id === efc.id;
+              });
+              if (extraFieldObject.name === 'Intro Text') {     
+                hugoContentItem.content.intro_text = efc.value;
+              } else if (extraFieldObject.name === 'Full Text') {
+                hugoContentItem.content.full_text = efc.value;
+              } else {
+                if (efc.value !== '') {
+                  hugoContentItem.frontMatter[downcaseUnderscore(extraFieldObject.name)] = efc.value;
+                }
+              }
+            })
+
+            // Data from the related menu item
+            if (getK2ItemMenuItemById(item.id, menuItems)) {
+              hugoContentItem.url = getK2ItemMenuItemById(item.id, menuItems).path;
+              hugoContentItem.frontMatter.url = getK2ItemMenuItemById(item.id, menuItems).path;
+            }
+
+            if (!hugoContentItem.intro_text && item.introtext.split('').length > 0) {
+              hugoContentItem.content.intro_text = item.introtext;
+            }
+
+            if (!hugoContentItem.full_text && item.fulltext.split('').length > 0) {
+              hugoContentItem.content.full_text = item.fulltext;
+            }
+            contentItems.push(hugoContentItem);
+          });
+          console.log(contentItems);
+
+          var json = menuItems.map(item => {
+            var parentMenuItem = menuItems.find(menuItem => {
+              return menuItem.id === item.parent_id;
+            });
+            var object = {};
+            object.url = item.path;
+            object.name = item.title;
+            if (parentMenuItem) {
+              object.parent = parentMenuItem.path;
+            }
+            return object
+          })
+          // console.log(JSON.stringify(json, null, 2));
+        });
+      }
+    )
+    .catch(function(err) {
+      console.log('Fetch Error :-S', err);
+    });
+  
+    function getK2ItemMenuItemById(itemId, menuItems) {
+      return menuItems.find(mi => {
+        var splitLink = mi.link.split(/[?=&]+/);
+        if (splitLink[2] === 'com_k2' && splitLink[4] === 'item') {
+          return itemId === splitLink[splitLink.length - 1];
+        }
+      })
+    }
+
+    function getFieldPropById(collection, itemId, prop) {
+      var object = collection.find(item => {
+        return item.id === itemId;
+      });
+      return object[prop];
+    }
+
+    function downcaseUnderscore(string) {
+      return string.toLowerCase().replace(/ /g, '_');
+    }
+
+  </script>
+</body>
+</html>
