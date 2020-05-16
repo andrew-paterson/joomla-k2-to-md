@@ -7,9 +7,10 @@
 </head>
 <body>
   <script>
+    var pathToDb = './rqapuymq_sandbox_maths.json'
     var dbPrefix = 'xp0hq_';
     var menuName = "mainmenu"
-    fetch('./vitalmaths.json')
+    fetch(pathToDb)
     .then(
       function(response) {
         if (response.status !== 200) {

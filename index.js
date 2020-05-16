@@ -8,6 +8,8 @@ var db = fs.readFileSync(source, 'utf-8');
 var json = JSON.parse(db);
 var toMarkdown = require('to-markdown');
 var lib = require('./lib.js');
+var md5 = require('md5');
+var coverImagesPath = process.argv[6] || '/images';
 const chalk = require('chalk');
 
 var final = {
@@ -55,7 +57,7 @@ var k2Categories = json.filter(item => {
 })[0].data;
 
 var k2AdditionalCategories = json.filter(item => {
-  return item.name === `${dbPrefix}k2_additional_categories`
+  return item.name === `${dbPrefix}k2_additional_categories`;
 })[0].data;
 
 var hugoContentItems = [];
@@ -73,6 +75,14 @@ k2Items.forEach(item => {
   hugoContentItem.frontMatter.weight = item.ordering;
   hugoContentItem.frontMatter.publish_date = item.publish_up;
   hugoContentItem.frontMatter.date = item.created;
+  hugoContentItem.frontMatter.cover_image = `${coverImagesPath}/` + md5(`Image${item.id}`) + '_S.jpg';
+  if (item.published !== "1") {
+    hugoContentItem.frontMatter.draft = true;
+  }
+  if (item.trash === "1") {
+    hugoContentItem.frontMatter.draft = true;
+    hugoContentItem.frontMatter.trashed = true;
+  }
 
   // Add the main category alias ot the frontmatter object.
   var itemCategoryObject = k2Categories.find(cat => {
@@ -102,7 +112,7 @@ k2Items.forEach(item => {
       hugoContentItem.content.full_text = toMarkdown(efc.value);
     } else {
       if (efc.value !== '') {
-        hugoContentItem.frontMatter[lib.downcaseUnderscore(extraFieldObject.name)] = efc.value;
+        hugoContentItem.frontMatter[lib.downcaseUnderscore(extraFieldObject.name)] = toMarkdown(efc.value);
       }
     }
   });
