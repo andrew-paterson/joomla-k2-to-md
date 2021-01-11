@@ -15,5 +15,8 @@
     "moment": "^2.19.2",
     "to-markdown": "^3.1.0",
     "tomlify-j0.4": "^3.0.0"
+  },
+  "devDependencies": {
+    "mkdirp": "^1.0.4"
   }
 }

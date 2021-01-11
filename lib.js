@@ -9,11 +9,7 @@ const chalk = require('chalk');
 
 module.exports = {
   mkdirP: function(dirPath) {
-    mkdirp.sync(dirPath, err => {
-      if (err) {
-        console.error(err);
-      }
-    });
+    mkdirp.sync(dirPath);
   },
 
   parseUrl: function(string) {
@@ -137,7 +133,7 @@ module.exports = {
     var parent = this.parentCategoryObject(current, k2Categories);
     if (parent) {
       acc.unshift(parent.alias);
-      return findParents(parent, acc);
+      return this.findParents(parent, acc);
     } else {
       return acc;
     }

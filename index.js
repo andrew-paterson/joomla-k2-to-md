@@ -40,25 +40,26 @@ menuNames.forEach(menuName => {
   final.menus[menuName] = json;
 });
 
-var menuItems = json.filter(item => {
+var menuItems = (json.filter(item => {
   return item.name === `${dbPrefix}menu`;
-})[0].data;
+})[0] || {}).data;
 
-var k2Items = json.filter(item => {
+var k2Items = (json.filter(item => {
   return item.name === `${dbPrefix}k2_items`;
-})[0].data;
+})[0] || {}).data;
 
-var k2ExtraFields = json.filter(item => {
+var k2ExtraFields = (json.filter(item => {
   return item.name === `${dbPrefix}k2_extra_fields`;
-})[0].data;
+})[0] || {}).data;
 
-var k2Categories = json.filter(item => {
+var k2Categories = (json.filter(item => {
   return item.name === `${dbPrefix}k2_categories`;
-})[0].data;
+})[0] || {}).data;
 
-var k2AdditionalCategories = json.filter(item => {
+
+var k2AdditionalCategories = (json.filter(item => {
   return item.name === `${dbPrefix}k2_additional_categories`;
-})[0].data;
+})[0] || {}).data;
 
 var hugoContentItems = [];
 
@@ -91,7 +92,7 @@ k2Items.forEach(item => {
   hugoContentItem.frontMatter.categories.push(itemCategoryObject.alias);
  
   // Add the aliases of the additional catgeories to the frontmatter object.
-  var itemAdditionalCategories = k2AdditionalCategories.filter(k2AdditionalCategory => {
+  var itemAdditionalCategories = (k2AdditionalCategories || []).filter(k2AdditionalCategory => {
     return k2AdditionalCategory.itemID === item.id;
   });
   itemAdditionalCategories.forEach(item => {

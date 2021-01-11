@@ -7,8 +7,8 @@
 </head>
 <body>
   <script>
-    var pathToDb = './rqapuymq_sandbox_maths.json'
-    var dbPrefix = 'xp0hq_';
+    var pathToDb = './aqvhqqpg_luddite.json'
+    var dbPrefix = 'rx5ol_';
     var menuName = "mainmenu"
     fetch(pathToDb)
     .then(
@@ -25,6 +25,8 @@
           var menus = data.filter(item => {
             return item.name === `${dbPrefix}menu`
           });
+          console.log(menus);
+
           var k2Items = data.filter(item => {
             return item.name === `${dbPrefix}k2_items`
           })[0].data;
